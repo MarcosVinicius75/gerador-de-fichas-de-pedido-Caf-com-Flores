@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Gerador de Fichas de Pedido</title>
+    <style>
+        /* ==========================================================================
+           ESTILOS DO FORMULÁRIO (O que aparece na tela do computador)
+           ========================================================================== */
+        body { font-family: Arial, sans-serif; margin: 30px; background-color: #f4f4f9; color: #333; }
+        .container { max-width: 700px; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); margin: 0 auto; }
+        h2 { color: #333; margin-top: 0; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; font-weight: bold; margin-bottom: 5px; }
+        input[type="text"], input[type="date"], textarea, select { width: 100%; padding: 8px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
+        .row { display: flex; gap: 10px; }
+        .col { flex: 1; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { border: 1px solid #ddd; padding: 6px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        button { background-color: #28a745; color: white; padding: 12px 20px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; margin-top: 20px; width: 100%; font-weight: bold; }
+        button:hover { background-color: #218838; }
+
+        /* ==========================================================================
+           DESIGN DA FICHA IMPRESSA (O visual idêntico à sua foto)
+           ========================================================================== */
+        #secao-ficha { display: none; } /* Fica escondido na tela para não misturar */
+        
+        .ficha-container { max-width: 550px; margin: 0 auto; border: 1px solid #000; padding: 15px; box-sizing: border-box; background: white; }
+        .header-datas { display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 8px; font-weight: bold; }
+        .campo-dados { border: 1px solid #000; margin-bottom: 4px; display: flex; font-size: 14px; background-color: #fffbef; }
+        .campo-dados .label { background-color: #f4edd2; padding: 4px 8px; font-weight: bold; border-right: 1px solid #000; min-width: 80px; }
+        .campo-dados .conteudo { padding: 4px 8px; flex-grow: 1; text-align: left; }
+        
+        .ficha-table { width: 100%; border-collapse: collapse; margin-top: 4px; font-size: 13px; }
+        .ficha-table, .ficha-table th, .ficha-table td { border: 1px solid #000; }
+        .ficha-table th { padding: 6px; font-weight: bold; text-align: center; }
+        .ficha-table th.qtd { background-color: #e8d0da; width: 10%; }
+        .ficha-table th.produto { background-color: #e8d0da; width: 60%; }
+        .ficha-table th.valor { background-color: #e8d0da; width: 15%; }
+        .ficha-table th.total { background-color: #f4edd2; width: 15%; }
+        .ficha-table td { height: 24px; padding: 2px 6px; }
+        
+        .pagamento-container { display: flex; margin-top: -1px; border: 1px solid #000; font-size: 13px; }
+        .pagamento-titulo { background-color: #e8d0da; flex-grow: 1; text-align: center; font-weight: bold; padding: 6px; border-right: 1px solid #000; }
+        .total-titulo { background-color: #f4edd2; width: 15%; text-align: center; font-weight: bold; padding: 6px; }
+        
+        .pagamento-opcoes { display: flex; border: 1px solid #000; margin-top: -1px; font-size: 12px; }
+        .opcoes-check { flex-grow: 1; display: flex; align-items: center; gap: 15px; padding: 6px 15px; border-right: 1px solid #000; }
+        .coracao { color: #f3cbd7; font-size: 14px; margin-right: 4px; }
+        .marcado { font-weight: bold; text-decoration: underline; }
+        .total-valor { width: 15%; text-align: center; font-weight: bold; padding: 6px; background-color: #fff; }
+        
+        .anotacoes-box { border: 1px solid #000; margin-top: 4px; min-height: 80px; font-size: 13px; }
+        .anotacoes-titulo { text-align: center; font-weight: bold; border-bottom: 1px solid #000; padding: 3px; background-color: #f0f0f0; }
+        .anotacoes-texto { padding: 6px; white-space: pre-wrap; text-align: left; }
+
+        /* ==========================================================================
+           REGRAS DE IMPRESSÃO (O que acontece quando clica em imprimir)
+           ========================================================================== */
+        @media print {
+            #secao-formulario { display: none !important; } /* Some o formulário */
+            #secao-ficha { display: block !important; }      /* Aparece só a ficha */
+            body { background-color: #fff; margin: 0; padding: 0; }
+            .ficha-container { border: 1px solid #000; }
+        }
+    </style>
+</head>
+<body>
+
+<div id="secao-formulario" class="container">
+    <h2>Novo Pedido</h2>
+    <form id="meuFormulario">
+        <div class="row">
+            <div class="form-group col">
+                <label>Data do Pedido *</label>
+                <input type="date" id="input_data_pedido" required>
+            </div>
+            <div class="form-group col">
+                <label>Data da Entrega *</label>
+                <input type="date" id="input_data_entrega" required>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>Cliente *</label>
+            <input type="text" id="input_cliente" required>
+        </div>
+
+        <div class="form-group">
+            <label>Fone *</label>
+            <input type="text" id="input_fone" required>
+        </div>
+
+        <div class="form-group">
+            <label>Endereço *</label>
+            <input type="text" id="input_endereco" required>
+        </div>
+
+        <h3>Produtos</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th style="width: 10%;">Qtd *</th>
+                    <th style="width: 50%;">Produto *</th>
+                    <th style="width: 20%;">R$ un. *</th>
+                    <th style="width: 20%;">Total *</th>
+                </tr>
+            </thead>
+            <tbody id="tabela-produtos-input">
+                <tr>
+                    <td><input type="text" class="qtd-in" required></td>
+                    <td><input type="text" class="prod-in" required></td>
+                    <td><input type="text" class="valor-in" required></td>
+                    <td><input type="text" class="total-in" required></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="row" style="margin-top: 15px;">
+            <div class="form-group col">
+                <label>Forma de Pagamento *</label>
+                <select id="input_pagamento" required>
+                    <option value="Pix">Pix</option>
+                    <option value="Cartão">Cartão</option>
+                    <option value="Dinheiro">Dinheiro</option>
+                </select>
+            </div>
+            <div class="form-group col">
+                <label>Total do Pedido *</label>
+                <input type="text" id="input_total_pedido" placeholder="R$ 0,00" required>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>Anotações (Opcional)</label>
+            <textarea id="input_anotacoes" rows="3"></textarea>
+        </div>
+
+        <button type="submit">Gerar Ficha para Impressão</button>
+    </form>
+</div>
+
+<div id="secao-ficha">
+    <div class="ficha-container">
+        <div class="header-datas">
+            <div id="txt_data_pedido">Data do pedido: </div>
+            <div id="txt_data_delivery">Data da entrega: </div>
+        </div>
+
+        <div class="campo-dados">
+            <div class="label">Cliente:</div>
+            <div id="txt_cliente" class="conteudo"></div>
+        </div>
+        <div class="campo-dados">
+            <div class="label">Fone:</div>
+            <div id="txt_fone" class="conteudo"></div>
+        </div>
+        <div class="campo-dados">
+            <div class="label">Endereço:</div>
+            <div id="txt_endereco" class="conteudo"></div>
+        </div>
+
+        <table class="ficha-table">
+            <thead>
+                <tr>
+                    <th class="qtd">Qtd.</th>
+                    <th class="produto">Produto</th>
+                    <th class="valor">R$ un.</th>
+                    <th class="total">Total</th>
+                </tr>
+            </thead>
+            <tbody id="tabela-produtos-output">
+                </tbody>
+        </table>
+
+        <div class="pagamento-container">
+            <div class="pagamento-titulo">Pagamento</div>
+            <div class="total-titulo">Total</div>
+        </div>
+        
+        <div class="pagamento-opcoes">
+            <div class="opcoes-check" id="opcoes-pagamento-print">
+                </div>
+            <div class="total-valor" id="txt_total_pedido"></div>
+        </div>
+
+        <div class="anotacoes-box">
+            <div class="anotacoes-titulo">Anotações:</div>
+            <div class="anotacoes-texto" id="txt_anotacoes"></div>
+        </div>
+    </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
